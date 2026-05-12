@@ -1,0 +1,7 @@
+import requests
+API_KEY = "96e28253d91e3dfe2b7e5a61c83fc998"
+url = f"https://api.themoviedb.org/3/movie/550?api_key={API_KEY}"
+response = requests.get(url)
+data = response.json()
+print(data)
+print(type(data))
