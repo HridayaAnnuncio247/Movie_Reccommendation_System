@@ -12,15 +12,41 @@ soup = BeautifulSoup(response.text, "html.parser")
 #print(soup.prettify())
 tables = soup.find("table", class_ = "infobox vevent")
 cast = []
+cnt = 0
+Director = []
+Writer = []
+Musician = []
+
 
 for row in tables.find_all("tr"):
     header = row.find("th")
+
+    if not header:
+    	continue
     
-    if header and "Starring" in header.text:
+    if "Starring" in header.text:
     	value = row.find("td")
     	for a in value.find_all("a"):
     		cast += a
+    	cnt += 1
+    elif "Directed" in header.text:
+    	value = row.find("td")
+    	for a in value.find_all("a"):
+    		Director += a
+    	cnt += 1
+    elif "Written" in header.text:
+    	value = row.find("td")
+    	for a in value.find_all("a"):
+    		Writer += a
+    	cnt += 1
+    elif "Music" in header.text:
+    	value = row.find("td")
+    	for a in value.find_all("a"):
+    		Musician += a
+    	cnt += 1
+
+    if cnt == 4:
     	break
       
 
-print(cast)
+print(cast, Director, Writer, Musician)

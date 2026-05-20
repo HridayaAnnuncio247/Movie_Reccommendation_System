@@ -43,16 +43,74 @@ class Movie:
 					print(movie['title'])
 					self.add_to_db(movie)
 
-		
-		"""#check if email entered by user hasn't already been used before. Cuz, 1 email should have only 1 account
-		if db.users.find_one({"email":user['email']}):
-			return jsonify({"error":"Email address already in use"}), 400 #first we repond with a dictionary where error is the ey, 400 indicates that it failed.
+	def add_cast_and_crew(self, collection_name):
+		collection = db[collection_name]
 
-		#encrypt the password
-		user['password'] = pbkdf2_sha256.encrypt(user['password'])
-		
-		if db.users.insert_one(user): # success of: the collection name is users
-			return self.start_session(user)"""
+		# {} like select * from table, thus selects all rows. "title":1 says that only extract the field title from every row. THis helps us with not etracting unrequired fields too. If i added "_id":0 then "_id" would be excluded. Currently it is included.
+		for row in collection.find({}, {"title": 1}): 
+
+			movie = row.get("title")
+			if movie:
+				updates = self.call_wiki(movie)
+				collection.update_one({"_id":row["id"]}, {"$set": updates})
+
+
+
+	def call_wiki(self, movie):
+		"""
+		string movie: Name of the movie. The spaces will be replaced with "_" to create the wiki link.
+		"""
+
+		movie_link = movie.replace(" ", "_")
+
+		url = "https://en.wikipedia.org/wiki/3_Idiots"
+		headers = {
+		    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+		response = requests.get(url, headers = headers) # request is sent to the url
+		#response.text contains the entire HTML content as a string
+		soup = BeautifulSoup(response.text, "html.parser")
+		#html.parser is Python'e inbuilt HTML parser (can use other parsers lie lxml and html5lib.)
+		#soup.prettify() prints well formatted HTML
+		#print(soup.prettify())
+		tables = soup.find("table", class_ = "infobox vevent")
+		cast = []
+		cnt = 0
+		Director = []
+		Writer = []
+		Musician = []
+
+
+		for row in tables.find_all("tr"):
+		    header = row.find("th")
+
+		    if not header:
+		    	continue
+		    
+		    if "Starring" in header.text:
+		    	value = row.find("td")
+		    	for a in value.find_all("a"):
+		    		cast += a
+		    	cnt += 1
+		    elif "Directed" in header.text:
+		    	value = row.find("td")
+		    	for a in value.find_all("a"):
+		    		Director += a
+		    	cnt += 1
+		    elif "Written" in header.text:
+		    	value = row.find("td")
+		    	for a in value.find_all("a"):
+		    		Writer += a
+		    	cnt += 1
+		    elif "Music" in header.text:
+		    	value = row.find("td")
+		    	for a in value.find_all("a"):
+		    		Musician += a
+		    	cnt += 1
+
+		    if cnt == 4:
+		    	break
+
+		return {"Cast": cast, "Director": Director, "Writer":Writer, "Music": Musician}
 
 
 

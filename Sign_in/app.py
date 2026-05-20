@@ -26,6 +26,11 @@ from user import routes # gets all routes in user
 def home():
 	return render_template("home.html")
 
+@app.route('/setting_up/')
+@login_required
+def setting_up():
+	return render_template("setting_up.html")
+
 @app.route('/dashboard/')
 @login_required
 def dashboard():
