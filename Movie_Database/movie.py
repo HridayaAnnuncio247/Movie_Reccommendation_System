@@ -2,6 +2,9 @@ import requests
 import time
 from db import db
 import uuid
+import requests
+from bs4 import BeautifulSoup
+
 
 class Movie:
 
@@ -47,37 +50,64 @@ class Movie:
 		collection = db[collection_name]
 
 		# {} like select * from table, thus selects all rows. "title":1 says that only extract the field title from every row. THis helps us with not etracting unrequired fields too. If i added "_id":0 then "_id" would be excluded. Currently it is included.
-		for row in collection.find({}, {"title": 1}): 
+		for row in collection.find({"original_language":"en"}, {"title": 1, "release_date":1, "original_language":1}): 
 
 			movie = row.get("title")
+			year = row.get("release_date")[:4]
+			
+			language = row.get("original_language")
+			if (int(year)>2016 or int(year)<2011):
+				continue
+			if language == "hi":
+				lang = "Hindi"
+			elif language == "en":
+				lang = "English"
 			if movie:
-				updates = self.call_wiki(movie)
-				collection.update_one({"_id":row["id"]}, {"$set": updates})
+				updates = self.call_wiki(movie,year,lang )
+				if not updates:
+					continue
+				collection.update_one({"_id":row["_id"]}, {"$set": updates})
+				print(movie)
 
 
 
-	def call_wiki(self, movie):
+	def call_wiki(self, movie, year, language):
 		"""
 		string movie: Name of the movie. The spaces will be replaced with "_" to create the wiki link.
 		"""
 
-		movie_link = movie.replace(" ", "_")
+		movie_name = movie.replace(" ", "_")
+		movie_links = [movie_name, movie_name + "_(film)", movie_name+"_("+year+"_film)",movie_name+"_("+year+"_" + language + "_film)" ]
+		#print(movie_link)
 
-		url = "https://en.wikipedia.org/wiki/3_Idiots"
+	
 		headers = {
 		    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
-		response = requests.get(url, headers = headers) # request is sent to the url
-		#response.text contains the entire HTML content as a string
-		soup = BeautifulSoup(response.text, "html.parser")
-		#html.parser is Python'e inbuilt HTML parser (can use other parsers lie lxml and html5lib.)
-		#soup.prettify() prints well formatted HTML
-		#print(soup.prettify())
-		tables = soup.find("table", class_ = "infobox vevent")
+		x = 0
+		for i in movie_links:
+			url = "https://en.wikipedia.org/wiki/" + i
+			#print(url)
+			response = requests.get(url, headers = headers) # request is sent to the url
+			#response.text contains the entire HTML content as a string
+			soup = BeautifulSoup(response.text, "html.parser")
+			#html.parser is Python'e inbuilt HTML parser (can use other parsers lie lxml and html5lib.)
+			#soup.prettify() prints well formatted HTML
+			#print(soup.prettify())
+			tables = soup.find("table", class_ = "infobox vevent")
+			if tables:
+				x = 1
+				break
+		if x==0:
+			db.movies_without_cast_and_crew.insert_one({"title":movie})
+			print("nocast and crew:", movie)
+			return None
+
 		cast = []
 		cnt = 0
 		Director = []
 		Writer = []
 		Musician = []
+		missing = []
 
 
 		for row in tables.find_all("tr"):
@@ -85,32 +115,57 @@ class Movie:
 
 		    if not header:
 		    	continue
+
+		    header_text = header.get_text(separator=" ").strip()
+		    #print(header_text)
 		    
-		    if "Starring" in header.text:
+		    if "Starring" in header_text or "Cast" in header_text:
 		    	value = row.find("td")
-		    	for a in value.find_all("a"):
-		    		cast += a
+		    	cast = self.extract_names(value)
+		    	if not cast:
+		    		missing.append("cast")
 		    	cnt += 1
-		    elif "Directed" in header.text:
+
+		    elif "Direct" in header_text:
 		    	value = row.find("td")
-		    	for a in value.find_all("a"):
-		    		Director += a
+		    	Director = self.extract_names(value)
+		    	if not Director:
+		    		missing.append("Director")
 		    	cnt += 1
-		    elif "Written" in header.text:
+
+		    elif "Written" in header_text or "Writer" in header_text:
 		    	value = row.find("td")
-		    	for a in value.find_all("a"):
-		    		Writer += a
+		    	Writer = self.extract_names(value)
+		    	if not Writer:
+		    		missing.append("Writer")
 		    	cnt += 1
-		    elif "Music" in header.text:
+
+		    elif "Music" in header_text:
 		    	value = row.find("td")
-		    	for a in value.find_all("a"):
-		    		Musician += a
+		    	Musician = self.extract_names(value)
+		    	if not Musician:
+		    		missing.append("Musician")
 		    	cnt += 1
 
 		    if cnt == 4:
 		    	break
+		if missing:
+		   	db.movies_without_specific_things.insert_one({"title":movie, "missing":missing})
+		   	print(missing, movie)
 
 		return {"Cast": cast, "Director": Director, "Writer":Writer, "Music": Musician}
 
 
+	def extract_names(self, value):
+		l = []
+		if not value:
+			return l
 
+		links = value.find_all("a")
+		if not links:
+			for text in value.stripped_strings:
+				l.append(text)
+		else:
+			for a in links:
+				l.append(a.get_text())
+		return l

@@ -19,10 +19,12 @@
   --red: #EF4836;
 }
 
+
 * {
-  position: relative;
+  /*position: relative;*/
   box-sizing: border-box;
 }
+
 
 body {
   margin: 0;
@@ -187,3 +189,46 @@ input[type=submit] {
     width: 200px;          /* each card is fixed width, controls how many fit per row */
     text-align: center;
   }
+
+.viewport{
+  width:100%;
+  height: 200px;
+  position:relative;
+  overflow:hidden; /* so extra cards are not seen*/
+}
+
+.track{
+  display: flex;  /*cards will line up horizontally*/
+  height: 100%;
+  transition: transform 0.3s ease; /*smooth transition*/
+}
+
+.arrow{
+  position:absolute;
+  width: 5%;
+  height: 20%;
+  z-index: 10; /*z shows the sheet the arrow is sitting on. We need the arrows to be above the genrecards in track*/
+  background: transparent;
+  border: none;
+}
+.right-arrow{
+  right:0;
+  top:50%;
+  transform: translateY(-50%); /*ertically center the arrow*/
+}
+
+.left-arrow{
+  left:0;
+  top:50%;
+  transform: translateY(-50%); /*ertically center the arrow*/
+}
+
+.genrecard{
+  width:20%;
+  height: 100%;
+  /*text-align: center; /*horizontal alignment. not enough for this*/
+  display:flex;/*turns it into a fleible container. now next two properties will work*/ 
+  justify-content: center; /*text is horizontally in the center*/
+  align-items: center; /*text is vertically in the center*/
+  flex-shrink: 0; /*makes sure that only 5 cards are shown and all 9 are not shrinked into that space*/
+}

@@ -1,4 +1,6 @@
 //we are using jquery here
+
+//signup form
 $("form[name=signup_form]").submit(function(e){ //e is the event. .submit used instead of .click() cuz it will include clicks plus other forms of submition like clicking on enter
 	var $form = $(this);
 	var $error = $form.find(".error"); //currently takes the <p> element in the form cuz its the only element with the error class
@@ -48,7 +50,73 @@ $("form[name=login_form]").submit(function(e){ //e is the event.
 	e.preventDefault(); //prevents stuff being submitted to a different pg etc
 })
 
-if ($("#moviegrid").length){ // only runs for setting_up.html where the id moviegrid actually exists
+
+
+//setting_up.html stuff
+
+//the carousel with the different genres
+if (document.querySelector('.genrecard')){
+	const track = document.querySelector('.track');
+	const left_arrow = document.querySelector('.left-arrow');
+	const right_arrow = document.querySelector('.right-arrow');
+	const card_width = document.querySelector('.genrecard').offsetWidth;
+	const all_cards = document.querySelectorAll('.genrecard')
+	const total_cards = all_cards.length;
+	const track_width = card_width * total_cards;
+	const base = "https://image.tmdb.org/t/p/w500"
+	let offset = 0;
+
+	//when the right arrow is clicked, the track should start from a different genere.
+	//offset keeps account of which point of the track should the display start at.
+	//a feature called translateX is added to the css of the track to place the offset correctly.
+	right_arrow.addEventListener('click', function(){
+		if (offset < track_width - card_width*5){
+			offset += card_width;
+			//track shifted to the left by offset number of pixels because of "-". we need to go left so that a new genre to the right can be displayed and the leftmost can be hidden.
+			track.style.transform = `translateX(-${offset}px)`; 
+		}
+	});
+
+	left_arrow.addEventListener('click', function(){
+		if (offset >= card_width){
+			offset -= card_width;
+			//track shifted to the left by offset number of pixels because of "-". we need to go left so that a new genre to the right can be displayed and the leftmost can be hidden.
+			track.style.transform = `translateX(-${offset}px)`; 
+		}
+	});
+
+	all_cards.forEach(function(card_){
+		card_.addEventListener('click', function(){
+			console.log(card_.dataset.title)
+			$("#moviegrid").empty();
+			$.ajax({
+					url: `/user/settingup/?genre=${card_.dataset.title}`, //from routes.py gets the json movies
+					type: "GET",
+					dataType: "json",
+					success: function(movies){
+						console.log(movies)
+						movies.forEach(function(movie){
+							var $card = $("<div>").addClass("moviecard");
+
+							$card.html(
+								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
+								<p>${movie.title}</p>
+								<button data-title = "${movie.title}">${movie.vote_average}</button>`
+								);
+							$("#moviegrid").append($card);
+						})
+					},
+					error: function(resp){
+						console.log(resp);
+					}
+				});	
+
+
+		});
+		});
+}
+//the movie grid stuff
+/*if ($("#moviegrid").length){ // only runs for setting_up.html where the id moviegrid actually exists
 	var base = "https://image.tmdb.org/t/p/w500"
 	$.ajax({
 		url: "/user/settingup/", //from routes.py gets the json movies
@@ -71,6 +139,7 @@ if ($("#moviegrid").length){ // only runs for setting_up.html where the id movie
 		}
 	});	
 }
+*/
 
 
 $("#done").click(function(e){
