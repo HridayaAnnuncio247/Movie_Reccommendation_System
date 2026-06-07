@@ -53,7 +53,7 @@ $("form[name=login_form]").submit(function(e){ //e is the event.
 
 
 //setting_up.html stuff
-
+let selected_movies = [];
 //the carousel with the different genres
 if (document.querySelector('.genrecard')){
 	const track = document.querySelector('.track');
@@ -101,9 +101,18 @@ if (document.querySelector('.genrecard')){
 							$card.html(
 								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
 								<p>${movie.title}</p>
-								<button data-title = "${movie.title}">${movie.vote_average}</button>`
+								<input type="checkbox" value="${movie._id}"  class = "movie_checkbox">`
 								);
-							$("#moviegrid").append($card);
+							$("#moviegrid").append($card);		
+							$card.find(".movie_checkbox").on("change", function(){
+									if ($(this).is(":checked")){
+										selected_movies.push($(this).val());
+									}
+									else{
+										selected_movies = selected_movies.filter(movie=>movie!=$(this).val());
+									}
+									
+							});
 						})
 					},
 					error: function(resp){
@@ -144,9 +153,9 @@ if (document.querySelector('.genrecard')){
 
 $("#done").click(function(e){
 	$.ajax({
-		//url:"/user/login", // the flask route it is sending th request to
-		//type: "POST", //POST cuz we are seding signup details to the server
-		//data: data, //the actual data being sent
+		url:"/user/userpreferences", // the flask route it is sending th request to
+		type: "POST", //POST cuz we are seding signup details to the server
+		data: JSON.stringify({"selected_movies":selected_movies}), //the actual data being sent
 		//dataType: "json", //tells jquery  "I expect the server to respond with JSON" so it automatically parses it for you
 		success: function(resp){ // this runs if request succeeds. "resp" is the flask route returned
 			console.log(resp);

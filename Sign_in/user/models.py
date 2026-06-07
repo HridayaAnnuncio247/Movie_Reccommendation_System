@@ -48,3 +48,28 @@ class User:
 		
 		return jsonify({"error": "Invalid email"}), 401
 
+
+	def preferences(self):
+		user_embedding = None
+		movie_ids = request.get_json()["selected_movies"]
+		for i in movie_ids:
+			movie = db.movies.find_one({"_id":i})
+			if not movie:
+				continue
+			embedding = np.array(movie.get("embedding"))
+			if user_embedding:
+				user_embedding += embedding
+			else:
+				user_embedding = embedding
+		if not user_embedding:
+			return jsonify({"error": "No valid movie id"}), 401
+
+
+		user_embedding = user_embedding/len(movie_ids)
+
+		user_id = session['user']["_id"]
+		db.users.update_one({"_id":user_id}, {"$set": {"user_embedding":user_embedding}})
+
+		return  jsonify({"success": "Usr embedding created"}), 200
+
+

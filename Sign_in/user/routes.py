@@ -1,10 +1,11 @@
 #all routes related to the user at every link, which function should work/ what should happen
 
-from flask import Flask, jsonify,request
+from flask import Flask, jsonify,request, session
 from app import app #from app.py import the app flask objct that we created
 from user.models import User # from user folder, models file, import the User class
 from db import db
 import sys
+import numpy as np
 
 genre_dict = {'Action': 28, 'Adventure': 12, 'Animation': 16, 'Comedy': 35, 'Crime': 80, 'Documentary': 99, 'Drama': 18, 'Family': 10751, 'Fantasy': 14, 'History': 36, 'Horror': 27, 'Music': 10402, 'Mystery': 9648, 'Romance': 10749, 'Science Fiction': 878, 'TV Movie': 10770, 'Thriller': 53, 'War': 10752, 'Western': 37}
 
@@ -24,9 +25,12 @@ def movies():
 	sys.stdout.flush()
 	collection = db["movies"]
 	base_url = "https://image.tmdb.org/t/p/w500"
-	movies = list(collection.find({"vote_count": {"$gt": 1000}, "genre_ids": genre_dict[genre]  }, {"title": 1, "poster_path": 1, "vote_average":1, "_id": 0}).sort("vote_average", -1).limit(10))
+	movies = list(collection.find({"vote_count": {"$gt": 1000}, "genre_ids": genre_dict[genre]  }, {"title": 1, "poster_path": 1, "vote_average":1, "embedding":1, "_id": 1}).sort("vote_average", -1).limit(10))
 	return jsonify(movies)
 
+@app.route('/user/userpreferences/', methods=['POST'])
+def preferences():
+	return User().preferences()
 @app.route('/user/login/', methods=['POST'])
 def login():
 	return User().login()

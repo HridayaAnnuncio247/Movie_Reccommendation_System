@@ -50,13 +50,13 @@ class Movie:
 		collection = db[collection_name]
 
 		# {} like select * from table, thus selects all rows. "title":1 says that only extract the field title from every row. THis helps us with not etracting unrequired fields too. If i added "_id":0 then "_id" would be excluded. Currently it is included.
-		for row in collection.find({"original_language":"en"}, {"title": 1, "release_date":1, "original_language":1}): 
+		for row in collection.find({"original_language":"hi"}, {"title": 1, "release_date":1, "original_language":1}): 
 
 			movie = row.get("title")
 			year = row.get("release_date")[:4]
 			
 			language = row.get("original_language")
-			if (int(year)>2016 or int(year)<2011):
+			if int(year)>2015:
 				continue
 			if language == "hi":
 				lang = "Hindi"
@@ -108,7 +108,6 @@ class Movie:
 		Writer = []
 		Musician = []
 		missing = []
-
 
 		for row in tables.find_all("tr"):
 		    header = row.find("th")
@@ -169,3 +168,80 @@ class Movie:
 			for a in links:
 				l.append(a.get_text())
 		return l
+
+	def movie_embeddings(self):
+
+		columns = ["_id", "adult", "genre_Action_28", "genre_Adventure_12", "genre_Animation_16", "genre_Comedy_35", "genre_Crime_80", "genre_Documentary_99", "genre_Drama_18", "genre_Family_10751", "genre_Fantasy_14", "genre_History_36", "genre_Horror_27", "genre_Music_10402", "genre_Mystery_9648", "genre_Romance_10749", "genre_Science_Fiction_878", "genre_TV_Movie_10770", "genre_Thriller_53", "genre_War_10752", "genre_Western_37", "language_Hindi", "language_English", "popularity", "release_month_sin", "release_month_cos", "release_year", "vote_average", "vote_count"]
+
+	def frequencies(self, collection_name):
+		collection = db[collection_name]
+
+		frequencies_cast = {}
+		frequencies_director={}
+		frequencies_musician={}
+		frequencies_writer={}
+
+		frequencies_cast["id"] = "Cast"
+		frequencies_director["id"] = "Director"
+		frequencies_musician["id"] = "Writer"
+		frequencies_writer["id"] = "Music"
+
+		# {} like select * from table, thus selects all rows. "title":1 says that only extract the field title from every row. THis helps us with not etracting unrequired fields too. If i added "_id":0 then "_id" would be excluded. Currently it is included.
+		for row in collection.find({}, {"Cast": 1, "Director": 1, "Writer":1, "Music": 1}): 
+
+			cast = row.get("Cast")
+			director = row.get("Director")
+			Writer = row.get("Writer")
+			Music = row.get("Music")
+			
+			if cast:
+				for i in cast:
+					if i in frequencies_cast:
+						frequencies_cast[i] += 1
+					else:
+						frequencies_cast[i] = 1
+
+			if director:
+				for i in director:
+					if i in frequencies_director:
+						frequencies_director[i] += 1
+					else:
+						frequencies_director[i] = 1
+
+			if Music:
+				for i in Music:
+					if i in frequencies_musician:
+						frequencies_musician[i] += 1
+					else:
+						frequencies_musician[i] = 1
+			if Writer:
+				for i in Writer:
+					if i in frequencies_writer:
+						frequencies_writer[i] += 1
+					else:
+						frequencies_writer[i] = 1
+
+
+		db.frequencies.insert_one(frequencies_cast)
+		db.frequencies.insert_one(frequencies_director)
+		db.frequencies.insert_one(frequencies_musician)
+		db.frequencies.insert_one(frequencies_writer)
+		
+		print(len(frequencies_cast))
+		#print(frequencies_director)
+		#print(frequencies_musician)
+		#print(frequencies_writer)
+
+		self.create_tables([frequencies_cast, frequencies_writer, frequencies_musician, frequencies_director])
+
+	def create_tables(self, l):
+
+		for dic in l:
+			table_name = dic["id"]
+
+			del dic["id"]
+
+			for j in dic:
+				db[table_name].insert_one({"name:": j, "frequency": dic[j]})
+
+
