@@ -55,6 +55,7 @@ $("form[name=login_form]").submit(function(e){ //e is the event.
 //setting_up.html stuff
 let selected_movies = [];
 //the carousel with the different genres
+$(document).ready(function(){
 if (document.querySelector('.genrecard')){
 	const track = document.querySelector('.track');
 	const left_arrow = document.querySelector('.left-arrow');
@@ -151,21 +152,22 @@ if (document.querySelector('.genrecard')){
 */
 
 
-$("#done").click(function(e){
+	$("#done").click(function(e){
 	$.ajax({
-		url:"/user/userpreferences", // the flask route it is sending th request to
-		type: "POST", //POST cuz we are seding signup details to the server
+		url:"/user/userpreferences/", // the flask route it is sending th request to
+		type: "POST", //POST cuz we are sending movie details to the server
+		contentType: "application/json", //cuz we are sending to flask
 		data: JSON.stringify({"selected_movies":selected_movies}), //the actual data being sent
-		//dataType: "json", //tells jquery  "I expect the server to respond with JSON" so it automatically parses it for you
+		//dataType: "json", //what we want from flask.tells jquery  "I expect the server to respond with JSON" so it automatically parses it for you
 		success: function(resp){ // this runs if request succeeds. "resp" is the flask route returned
 			console.log(resp);
 			window.location.href="/dashboard/"; //go to that user's dashboard after signing up
 		},
 		error: function(resp){ //if something goes wrong, this function runs and will most probs show 200? lie error 200 or 404
 			console.log(resp); // this doesn't show anything on the webpage though
-			$error.text(resp.responseJSON.error).removeClass("error--hidden"); //text of <p> in form should be the alue of the key called error
+			//$error.text(resp.responseJSON.error).removeClass("error--hidden"); //text of <p> in form should be the alue of the key called error
 			}
 	});
 
+});
 })
-

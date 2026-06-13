@@ -15,7 +15,7 @@ def get_word2vec_embedding(model, data):
 			vec = vec/cnt
 	#print(vec)
 	return vec
-
+db.movies.delete_many({ "$or": [ {"release_date": None}, {"adult": None}, {"popularity": None}, {"vote_average": None}, {"vote_count": None}, {"genre_ids": None} ] })
 
 model = Word2Vec.load("castCrew_word2vec16.model")
 
@@ -35,12 +35,13 @@ for i in range(16):
 	columns.append("musician_" + str(i))
 
 
-
+all_embeddings = []
+all_ids = []
 
 for movie in db.movies.find():
 	movie_embedding = []
 
-	movie_embedding.append(movie.get("_id"))
+	#movie_embedding.append(movie.get("_id"))
 	movie_embedding.append(movie.get("adult"))
 
 	lang = movie.get("original_language")
@@ -78,11 +79,21 @@ for movie in db.movies.find():
 	
 	movie_embedding += list(get_word2vec_embedding(model,movie.get("Music")))
 
-	updates = {"embedding":movie_embedding}
+	all_embeddings.append(movie_embedding)
+	all_ids.append(movie.get("_id"))
+
+	#updates = {"embedding":movie_embedding}
 	
-	db.movies.update_one({"_id":movie["_id"]}, {"$set": updates})
+	#db.movies.update_one({"_id":movie["_id"]}, {"$set": updates})
 	
 
+all_movie_embeddings = np.array(all_embeddings)
+min_vals = all_movie_embeddings.min(axis=0)
+max_vals = all_movie_embeddings.max(axis=0)
+arr_normalized = (all_movie_embeddings - min_vals) / (max_vals - min_vals + 1e-8)  # 1e-8 to avoid division by zero
+
+for i, movie_id in enumerate(all_ids):
+    db.movies.update_one({"_id": movie_id}, {"$set": {"embedding": arr_normalized[i].tolist()}})
 
 
 

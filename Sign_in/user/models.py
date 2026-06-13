@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request,session, redirect
 from passlib.hash import pbkdf2_sha256
 from db import db
+import numpy as np
 import uuid
 
 class User:
@@ -50,26 +51,70 @@ class User:
 
 
 	def preferences(self):
+	"""
+	In this function we retrieve the movie ids that the user selected on creating their account. 
+	The embeddings of those movies are used to create the user embedding by averaging.
+	"""
 		user_embedding = None
-		movie_ids = request.get_json()["selected_movies"]
+		movie_ids = list(set(request.get_json()["selected_movies"]))
 		for i in movie_ids:
 			movie = db.movies.find_one({"_id":i})
 			if not movie:
 				continue
 			embedding = np.array(movie.get("embedding"))
-			if user_embedding:
+			if user_embedding is not None:
 				user_embedding += embedding
 			else:
 				user_embedding = embedding
-		if not user_embedding:
+		if user_embedding is None:
 			return jsonify({"error": "No valid movie id"}), 401
 
 
 		user_embedding = user_embedding/len(movie_ids)
 
 		user_id = session['user']["_id"]
-		db.users.update_one({"_id":user_id}, {"$set": {"user_embedding":user_embedding}})
+		session['user']["user_embedding"] = user_embedding.tolist()
+		session['user']["movies"] = movie_ids
+		session['user']["update"] = True # indicates if the RL algo should learn news recs to add to the dashboard
+		session.modified = True
+		if not db.users.update_one({"_id":user_id}, {"$set": {"user_embedding":user_embedding.tolist(), 
+															  "movies": movie_ids,
+															  "update": True}}):
+			return  jsonify({"error": "User embedding could not be added to the db"}), 401
 
-		return  jsonify({"success": "Usr embedding created"}), 200
+		return  jsonify({"success": "User embedding created"}), 200
 
 
+	def recommend(self):
+
+		movie_ids = session["user"]["movies"]
+		if not session['user']["update"]:
+			return movie_ids
+
+		user_embedding = session["user"]["user_embedding"]
+		movie_embeddings = []
+		rewards = []
+
+		for i in movie_ids:
+			movie = db.movies.find_one({"_id":i})
+			if not movie:
+				continue
+			movie_embedding = np.array(movie.get("embedding"))
+			movie_embeddings.append(user_embedding + movie_embedding.tolist())
+			reward = movie.get("reward")
+			if not reward:
+				user_norm = user_embedding / np.linalg.norm(user_embedding)
+				movie_norm = movie_embedding / np.linalg.norm(movie_embedding)
+				reward = user_norm@movie_norm
+
+			rewards.append(reward)
+
+		
+
+
+
+
+
+
+
+		

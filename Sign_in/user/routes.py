@@ -25,7 +25,7 @@ def movies():
 	sys.stdout.flush()
 	collection = db["movies"]
 	base_url = "https://image.tmdb.org/t/p/w500"
-	movies = list(collection.find({"vote_count": {"$gt": 1000}, "genre_ids": genre_dict[genre]  }, {"title": 1, "poster_path": 1, "vote_average":1, "embedding":1, "_id": 1}).sort("vote_average", -1).limit(10))
+	movies = list(collection.find({"vote_count": {"$gt": 1000}, "genre_ids": genre_dict[genre]  }, {"title": 1, "poster_path": 1, "vote_average":1, "embedding":1, "_id": 1}).sort("vote_average", -1).limit(40))
 	return jsonify(movies)
 
 @app.route('/user/userpreferences/', methods=['POST'])
