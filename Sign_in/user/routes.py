@@ -25,12 +25,30 @@ def movies():
 	sys.stdout.flush()
 	collection = db["movies"]
 	base_url = "https://image.tmdb.org/t/p/w500"
-	movies = list(collection.find({"vote_count": {"$gt": 1000}, "genre_ids": genre_dict[genre]  }, {"title": 1, "poster_path": 1, "vote_average":1, "embedding":1, "_id": 1}).sort("vote_average", -1).limit(40))
+	movies = list(collection.find({"vote_count": {"$gt": 1000}, "genre_ids": genre_dict[genre]  }, {"title": 1, "poster_path": 1, "vote_average":1, "embedding":1, "_id": 1}).sort("vote_average", -1).limit(49))
+	return jsonify(movies)
+
+@app.route('/user/dashboard/')
+def dashboard_movies():
+	movie_ids = list(set(db.users.find_one({"_id": session["user"]["_id"]}).get("movies")))
+	print(movie_ids)
+	collection = db["movies"]
+	base_url = "https://image.tmdb.org/t/p/w500"
+	movies = []
+	for i in movie_ids:
+		x = collection.find_one({ "_id": i }, {"title": 1, "poster_path": 1, "vote_average":1, "embedding":1, "_id": 1})
+		if x:
+			movies.append(x)
 	return jsonify(movies)
 
 @app.route('/user/userpreferences/', methods=['POST'])
 def preferences():
 	return User().preferences()
+
+@app.route('/user/update_userpreferences/', methods=['POST'])
+def update_preferences():
+	return User().update_preferences()
+
 @app.route('/user/login/', methods=['POST'])
 def login():
 	return User().login()

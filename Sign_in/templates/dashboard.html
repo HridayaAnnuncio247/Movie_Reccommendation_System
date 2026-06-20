@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<h1>DASHBOARD TEST</h1> 
 <div class = "card-wrapper">
 	<div class="card">
 		<h1 class="center">Dashboard</h1>
@@ -12,13 +13,21 @@
 	</div>
 
 
-	<div class="card">
+<!--	<div class="card">
 		<h2 class = "center">Your Info</h2>
 		<p>
 		<strong>ID:</strong>{{session['user']['_id']}}<br>
 		<strong>Name:</strong>{{session['user']['name']}}<br>
 		<strong>Email:</strong>{{session['user']['movies']}}
 		</p>
-	</div>
+	</div>-->
+</div>
+<h1>DASHBOARD TEST</h1> 
+<div id = "dashboard_recommendations">
+
+</div>
+
+<div class="center">
+<button id="update">Update</button> 
 </div>
 {% endblock %}

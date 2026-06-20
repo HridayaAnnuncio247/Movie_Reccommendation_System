@@ -102,12 +102,15 @@ if (document.querySelector('.genrecard')){
 							$card.html(
 								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
 								<p>${movie.title}</p>
+
 								<input type="checkbox" value="${movie._id}"  class = "movie_checkbox">`
 								);
 							$("#moviegrid").append($card);		
 							$card.find(".movie_checkbox").on("change", function(){
+								 	$card.toggleClass("setting_up_likes");
 									if ($(this).is(":checked")){
 										selected_movies.push($(this).val());
+
 									}
 									else{
 										selected_movies = selected_movies.filter(movie=>movie!=$(this).val());
@@ -171,3 +174,94 @@ if (document.querySelector('.genrecard')){
 
 });
 })
+
+
+
+$(document).ready(function(){
+
+	console.log("dashboard JS loaded");
+	console.log(document.querySelector('#dashboard_recommendations'));
+if (document.querySelector('#dashboard_recommendations')){
+	let movie_ids = [];
+	let rewards = [];
+	const base = "https://image.tmdb.org/t/p/w500";
+	console.log("in dashboard recommendations")
+	$("#dashboard_recommendations").empty();
+
+$.ajax({
+					url: `/user/dashboard/`, //from routes.py gets the json movies
+					type: "GET",
+					dataType: "json",
+					success: function(movies){
+						console.log("inside the ajax printnng list of movies")
+						console.log(movies)
+						movies.forEach(function(movie){
+							var $card = $("<div>").addClass("moviecard");
+
+							$card.html(
+								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
+								<p>${movie.title}</p>
+								<div class = "movie-actions">
+								 <button class="like_btn" value="${movie._id}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+    </svg></button>
+    							<button class="dislike_btn" value="${movie._id}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+    </svg></button>
+    </div>`
+								);
+							$("#dashboard_recommendations").append($card);	
+							$card.find(".like_btn").on("click", function(){
+												$card.removeClass("disliked");
+											    $card.toggleClass("liked");
+											    //only last button clicked for the movies and rewards is selected
+											    if (movie_ids.some(item => item === $(this).val())){
+											    	let idx = movie_ids.indexOf($(this).val());
+											    	movie_ids.splice(idx, 1);
+											    	rewards.splice(idx, 1);											  
+											    }
+											    if ($card.hasClass("liked")){
+												    movie_ids.push($(this).val());
+												    rewards.push(1);
+												}
+
+											});	
+							$card.find(".dislike_btn").on("click", function(){
+												$card.removeClass("liked");
+											    $card.toggleClass("disliked");
+											    if (movie_ids.some(item => item === $(this).val())){
+											    	let idx = movie_ids.indexOf($(this).val());
+											    	movie_ids.splice(idx, 1);
+											    	rewards.splice(idx, 1);											  
+											    }							  
+											    if ($card.hasClass("disliked")){
+												    movie_ids.push($(this).val());
+												    rewards.push(-1);
+												}
+											});	
+						})
+					},
+					error: function(resp){
+						console.log(resp);
+					}
+				});	
+		$("#update").click(function(e){
+		$.ajax({
+		url:"/user/update_userpreferences/", // the flask route it is sending th request to
+		type: "POST", //POST cuz we are sending movie details to the server
+		contentType: "application/json", //cuz we are sending to flask
+		data: JSON.stringify({"movie_ids":movie_ids, "rewards":rewards}), //the actual data being sent
+		//dataType: "json", //what we want from flask.tells jquery  "I expect the server to respond with JSON" so it automatically parses it for you
+		success: function(resp){ // this runs if request succeeds. "resp" is the flask route returned
+			console.log(resp);
+			window.location.href="/dashboard/"; //go to that user's dashboard after signing up
+		},
+		error: function(resp){ //if something goes wrong, this function runs and will most probs show 200? lie error 200 or 404
+			console.log(resp); // this doesn't show anything on the webpage though
+			//$error.text(resp.responseJSON.error).removeClass("error--hidden"); //text of <p> in form should be the alue of the key called error
+			}
+	});
+
+});
+		}
+	})

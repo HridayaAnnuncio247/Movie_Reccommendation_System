@@ -46,9 +46,12 @@ for movie in db.movies.find():
 
 	lang = movie.get("original_language")
 	if lang == "en":
-		movie_embedding += [1,0]
-	elif lang == "hi":
-		movie_embedding += [0,1]
+		movie_embedding += [1]
+	else:
+		movie_embedding += [0]
+
+	#elif lang == "hi":
+	#	movie_embedding += [0,1]
 	
 	release =  movie.get("release_date")
 	movie_embedding.append(int(release[:4]))
