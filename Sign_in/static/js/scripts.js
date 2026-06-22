@@ -101,19 +101,17 @@ if (document.querySelector('.genrecard')){
 
 							$card.html(
 								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
-								<p>${movie.title}</p>
-
-								<input type="checkbox" value="${movie._id}"  class = "movie_checkbox">`
+								<p>${movie.title}</p>`
 								);
 							$("#moviegrid").append($card);		
-							$card.find(".movie_checkbox").on("change", function(){
+							$card.on("click", function(){
 								 	$card.toggleClass("setting_up_likes");
-									if ($(this).is(":checked")){
-										selected_movies.push($(this).val());
+									if ($(this).hasClass("setting_up_likes")){
+										selected_movies.push(movie._id);
 
 									}
 									else{
-										selected_movies = selected_movies.filter(movie=>movie!=$(this).val());
+										selected_movies = selected_movies.filter(m=>m!=movie._id);
 									}
 									
 							});

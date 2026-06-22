@@ -139,7 +139,7 @@ class User:
 		recommend = [] #movie ids to be recommended on the dashboard
 		cnt = 0
 		while True: #for i in range(30):
-			if cnt == 35 or (not top_k and not rest):
+			if cnt == 36 or (not top_k and not rest):
 				break
 			random_new = random.random()
 			if random_new < p_new:

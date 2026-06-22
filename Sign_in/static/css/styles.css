@@ -183,6 +183,7 @@ input[type=submit] {
     display: flex;        /* lay items out horizontally */
     flex-wrap: wrap;      /* wrap to next row when the current one is full */
     gap: 16px;            /* space between cards */
+    padding:30px 40px; /*keeps the movies from touching screen edges*/
   }
 #moviegrid {
     display: flex;        /* lay items out horizontally */
@@ -253,6 +254,7 @@ input[type=submit] {
   padding: 10px;
   display: flex;
   flex-direction: column;/*stacks image, title and buttons vertically*/
+  margin: 20px 10px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.08);/*[horizontal-offset] [vertical-offset] [blur-radius] [color];0 — no horizontal shift (shadow doesn't lean left/right)
   2px — shadow is pushed down 2px (since light usually comes from above)
   10px — blur radius, how soft/spread out the shadow edge is
@@ -272,8 +274,8 @@ input[type=submit] {
 }
 
 .setting_up_likes {
-    border: 3px solid blue;
-    background-color: blue;
+    border: 3px solid var(--primary);
+    background-color: #d6e8fa;
 }
 
 .liked {
@@ -333,7 +335,7 @@ transform: scale(0.92);/*on the action of clicking on the buttons, they become s
   font-family: inherit;/*same font as rest of page*/
   letter-spacing: 1px;
   color: var(--white);
-  background: var(--almost-black);
+  background: var(--primary-dark);
   border-radius: 10px;
   border: none;
   cursor: pointer;
@@ -350,4 +352,68 @@ transform: scale(0.92);/*on the action of clicking on the buttons, they become s
 #done:active, #update:active {
   transform: translateY(0);          /* button drops back down to its original position the instant you press it */
   box-shadow: 0 2px 6px rgba(30, 136, 229, 0.25);  /* shadow shrinks back down too, like the button is being pressed flat */
+}
+
+.site-footer {
+  background: var(--almost-black);  /* darker than body's --grey-dark, so it visually separates */
+  padding: 70px 20px;
+  text-align: center;
+}
+
+.social-links {
+  margin-bottom: 10px;
+}
+
+.social-links a {
+  color: var(--almost-white);
+  font-size: 20px;
+  margin: 0 10px;
+  display: inline-block;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.social-links a:hover {
+  color: var(--primary);
+  transform: translateY(-2px);
+}
+
+.copyright {
+  color: var(--grey);
+  font-size: 13px;
+  letter-spacing: 0.3px;
+}
+
+.site-brand{
+  text-align: center;
+  padding:40px 0;
+  font-size: 50px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--white);
+  background: var(--black);
+}
+
+.dashboard-header {
+  display: flex;              /* puts welcome text and signout link side by side */
+  justify-content: space-between;  /* pushes one to the left edge, one to the right edge */
+  align-items: center;        /* vertically centers both within the bar */
+  width: 100%;
+  padding: 8px 40px;         /* 40px breathing room from screen edges */
+  background: var(--almost-black);
+  color: var(--white);
+  font-size: 14px;
+}
+
+.signout-link {
+  color: var(--white);
+  text-decoration: none;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  transition: opacity 0.15s ease;
+  background: var(--primary)
+  border-radius:10px;
+}
+
+.signout-link:hover {
+  opacity: 0.7;
 }
