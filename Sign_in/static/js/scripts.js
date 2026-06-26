@@ -60,7 +60,7 @@ if (document.querySelector('.genrecard')){
 	const track = document.querySelector('.track');
 	const left_arrow = document.querySelector('.left-arrow');
 	const right_arrow = document.querySelector('.right-arrow');
-	const card_width = document.querySelector('.genrecard').offsetWidth;
+	const card_width = track.parentElement.offsetWidth * 0.2;//shifting by 20% of screen each time
 	const all_cards = document.querySelectorAll('.genrecard')
 	const total_cards = all_cards.length;
 	const track_width = card_width * total_cards;
@@ -100,7 +100,7 @@ if (document.querySelector('.genrecard')){
 							var $card = $("<div>").addClass("moviecard");
 
 							$card.html(
-								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
+								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" >
 								<p>${movie.title}</p>`
 								);
 							$("#moviegrid").append($card);		
@@ -197,7 +197,7 @@ $.ajax({
 							var $card = $("<div>").addClass("moviecard");
 
 							$card.html(
-								`<img src = "${base + movie.poster_path}" alt= "${movie.title}" width = "200">
+								`<img src = "${base + movie.poster_path}" alt= "${movie.title}">
 								<p>${movie.title}</p>
 								<div class = "movie-actions">
 								 <button class="like_btn" value="${movie._id}"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
