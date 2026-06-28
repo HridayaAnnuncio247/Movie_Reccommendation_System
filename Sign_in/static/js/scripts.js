@@ -66,13 +66,17 @@ if (document.querySelector('.genrecard')){
 	const track_width = card_width * total_cards;
 	const base = "https://image.tmdb.org/t/p/w500"
 	let offset = 0;
+	let cnt = 0;
 
 	//when the right arrow is clicked, the track should start from a different genere.
 	//offset keeps account of which point of the track should the display start at.
 	//a feature called translateX is added to the css of the track to place the offset correctly.
 	right_arrow.addEventListener('click', function(){
-		if (offset < track_width - card_width*5){
+
+		if (cnt < total_cards - 5){
+			console.log(cnt)
 			offset += card_width;
+			cnt += 1
 			//track shifted to the left by offset number of pixels because of "-". we need to go left so that a new genre to the right can be displayed and the leftmost can be hidden.
 			track.style.transform = `translateX(-${offset}px)`; 
 		}
